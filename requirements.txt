@@ -1,0 +1,4 @@
+fastapi       #-> build REST APIs
+uvicorn       #-> run FastAPI locally
+python-dotenv #-> load config from .env later
+pydantic      #-> request/response validation
