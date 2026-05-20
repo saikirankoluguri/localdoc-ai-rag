@@ -1,13 +1,14 @@
 from fastapi import FastAPI
+from backend.config import settings
 
 app = FastAPI(
-    title="LocalDoc AI RAG API",
+    title=settings.APP_NAME,
+    version=settings.API_VERSION,
     description="Backend API for LocalDoc AI, a simple end-to-end RAG document assistant.",
-    version="0.1.0",
 )
 @app.get("/health")
 def health_check():
     return {
         "status": "ok",
-        "message": "LocalDoc AI RAG API is running",
+        "message": f"{settings.APP_NAME} is running",
     }
