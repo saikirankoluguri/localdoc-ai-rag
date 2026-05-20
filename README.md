@@ -19,3 +19,5 @@ Sprint 0: Project setup completed.
 
 pip install -r requirements.txt
 python -c "import fastapi; import uvicorn; print('FastAPI setup working')"
+
+uvicorn backend.main:app
