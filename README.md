@@ -16,3 +16,6 @@ A simple end-to-end RAG application that allows users to upload documents and as
 ## Project Status
 
 Sprint 0: Project setup completed.
+
+pip install -r requirements.txt
+python -c "import fastapi; import uvicorn; print('FastAPI setup working')"
