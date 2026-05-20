@@ -14,3 +14,8 @@ class QuestionRequest(BaseModel):
 class QuestionResponse(BaseModel):
     answer: str
     sources: List[str]
+
+class UploadResponse(BaseModel):
+    filename: str
+    content_type: str
+    message: str

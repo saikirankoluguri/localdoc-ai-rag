@@ -1,9 +1,9 @@
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 
 from backend.config import settings
-from backend.schemas import HealthResponse
+from backend.schemas import HealthResponse, UploadResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,4 +37,12 @@ def health_check():
     return HealthResponse(
         status="ok",
         message=f"{settings.APP_NAME} running successfully",
+    )
+
+@app.post("/upload", response_model=UploadResponse)
+async def upload_document(file: UploadFile = File(...)):
+    return UploadResponse(
+        filename=file.filename,
+        content_type=file.content_type,
+        message="File received successfully",
     )
