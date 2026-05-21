@@ -28,3 +28,16 @@ class DocumentInfo(BaseModel):
     filename: str
     file_path: str
     file_size_kb: float
+
+class ChunkInfo(BaseModel):
+    chunk_index: int
+    text: str
+    source_document: str
+    character_count: int
+
+
+class ChunkingResponse(BaseModel):
+    source_document: str
+    total_chunks: int
+    chunks: List[ChunkInfo]
+    message: str
