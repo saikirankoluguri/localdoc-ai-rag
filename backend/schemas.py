@@ -19,4 +19,6 @@ class UploadResponse(BaseModel):
     filename: str
     content_type: str
     saved_path: str
+    page_count: int
+    text_length: int
     message: str

@@ -6,6 +6,7 @@ from fastapi import FastAPI, UploadFile, File,HTTPException
 
 from backend.config import settings
 from backend.schemas import HealthResponse, UploadResponse
+from backend.document_loader import extract_text_from_pdf
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -57,9 +58,13 @@ async def upload_document(file: UploadFile = File(...)):
     with saved_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    extracted_data = extract_text_from_pdf(str(saved_path))
+
     return UploadResponse(
         filename=file.filename,
         content_type=file.content_type,
         saved_path=str(saved_path),
-        message="File uploaded and saved successfully",
+        page_count=extracted_data["page_count"],
+        text_length=extracted_data["text_length"],
+        message="File uploaded, saved, and text extracted successfully",
     )
