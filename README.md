@@ -37,3 +37,5 @@ Run:
 
 ```bash
 uvicorn backend.main:app --reload
+
+python -c "from langchain_text_splitters import RecursiveCharacterTextSplitter; print('Text splitter working')"
