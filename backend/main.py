@@ -5,7 +5,7 @@ import shutil
 from fastapi import FastAPI, UploadFile, File,HTTPException
 
 from backend.config import settings
-from backend.schemas import HealthResponse, UploadResponse, DocumentInfo,ChunkingResponse, ChunkInfo
+from backend.schemas import HealthResponse, UploadResponse, DocumentInfo,ChunkingResponse, ChunkInfo , ChunkingSummaryResponse
 from backend.document_loader import extract_text_from_pdf
 from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json,chunks_file_exists
 
@@ -93,7 +93,7 @@ def list_documents():
 
     return documents
 
-@app.post("/documents/{filename}/chunks", response_model=ChunkingResponse)
+@app.post("/documents/{filename}/chunks", response_model=ChunkingSummaryResponse)
 def create_document_chunks(filename: str):
     source_path = Path(filename)
     extracted_file_path = Path("data/extracted") / f"{source_path.stem}.txt"
@@ -106,11 +106,10 @@ def create_document_chunks(filename: str):
             Path("data/chunks") / f"{Path(filename).stem}_chunks.json"
         )
 
-        return ChunkingResponse(
+        return ChunkingSummaryResponse(
             source_document=filename,
-            total_chunks=len(chunks),
+            total_chunks=len(chunks_data),
             chunks_file_path=chunks_file_path,
-            chunks=chunks,
             message="Chunks already exist for this document. Loaded existing chunks.",
         )
 
@@ -130,17 +129,14 @@ def create_document_chunks(filename: str):
         source_document=filename,
     )
 
-    chunks = [ChunkInfo(**chunk) for chunk in chunks_data]
-
-    return ChunkingResponse(
+    return ChunkingSummaryResponse(
         source_document=filename,
-        total_chunks=len(chunks),
+        total_chunks=len(chunks_data),
         chunks_file_path=chunks_file_path,
-        chunks=chunks,
         message="Document chunks generated and saved successfully",
     )
 
-@app.get("/documents/{filename}/chunks", response_model=ChunkingResponse)
+@app.get("/documents/{filename}/chunks", response_model=ChunkingSummaryResponse)
 def get_document_chunks(filename: str):
     try:
         chunks_data = load_chunks_from_json(source_document=filename)
@@ -150,16 +146,16 @@ def get_document_chunks(filename: str):
             detail=f"Chunks not found for document: {filename}. Generate chunks first.",
         )
 
-    chunks = [ChunkInfo(**chunk) for chunk in chunks_data]
-
     chunks_file_path = str(
         Path("data/chunks") / f"{Path(filename).stem}_chunks.json"
     )
 
-    return ChunkingResponse(
-        source_document=filename,
-        total_chunks=len(chunks),
-        chunks_file_path=chunks_file_path,
-        chunks=chunks,
-        message="Document chunks loaded successfully",
+    return ChunkingSummaryResponse(
+    source_document=filename,
+    total_chunks=len(chunks_data),
+    chunks_file_path=chunks_file_path,
+    # Note: The 'chunks' field is not included in the response to avoid returning a large list of chunk data.
+    # If you need the actual chunks, you can add a 'chunks' field, but be cautious of the response size.
+    # chunks=chunks returns all chunks.
+    message="Document chunks summary loaded successfully",
     )
