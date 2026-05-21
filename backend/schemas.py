@@ -42,3 +42,16 @@ class ChunkingResponse(BaseModel):
     chunks_file_path: str
     chunks: List[ChunkInfo]
     message: str
+
+class ChunkingSummaryResponse(BaseModel):
+    source_document: str
+    total_chunks: int
+    chunks_file_path: str
+    message: str
+
+class ChunkPreviewResponse(BaseModel):
+    source_document: str
+    total_chunks: int
+    preview_count: int
+    chunks: List[ChunkInfo]
+    message: str

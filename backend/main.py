@@ -5,7 +5,15 @@ import shutil
 from fastapi import FastAPI, UploadFile, File,HTTPException
 
 from backend.config import settings
-from backend.schemas import HealthResponse, UploadResponse, DocumentInfo,ChunkingResponse, ChunkInfo , ChunkingSummaryResponse
+from backend.schemas import (
+    HealthResponse,
+    UploadResponse,
+    DocumentInfo,
+    ChunkingResponse,
+    ChunkInfo,
+    ChunkingSummaryResponse,
+    ChunkPreviewResponse,
+)
 from backend.document_loader import extract_text_from_pdf
 from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json,chunks_file_exists
 
@@ -158,4 +166,37 @@ def get_document_chunks(filename: str):
     # If you need the actual chunks, you can add a 'chunks' field, but be cautious of the response size.
     # chunks=chunks returns all chunks.
     message="Document chunks summary loaded successfully",
+    )
+
+@app.get(
+    "/documents/{filename}/chunks/preview", response_model=ChunkPreviewResponse
+)
+def preview_document_chunks(
+    filename: str,
+    limit: int = 5
+):
+    try:
+        chunks_data = load_chunks_from_json(
+            source_document=filename
+        )
+
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Chunks not found for document: {filename}"
+        )
+
+    preview_chunks = chunks_data[:limit]
+
+    chunks = [
+        ChunkInfo(**chunk)
+        for chunk in preview_chunks
+    ]
+
+    return ChunkPreviewResponse(
+        source_document=filename,
+        total_chunks=len(chunks_data),
+        preview_count=len(chunks),
+        chunks=chunks,
+        message="Chunk preview loaded successfully"
     )
