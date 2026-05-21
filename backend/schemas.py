@@ -23,3 +23,8 @@ class UploadResponse(BaseModel):
     page_count: int
     text_length: int
     message: str
+
+class DocumentInfo(BaseModel):
+    filename: str
+    file_path: str
+    file_size_kb: float
