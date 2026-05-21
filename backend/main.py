@@ -1,6 +1,8 @@
 import logging
+from pathlib import Path
+import shutil
 
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File,HTTPException
 
 from backend.config import settings
 from backend.schemas import HealthResponse, UploadResponse
@@ -41,8 +43,23 @@ def health_check():
 
 @app.post("/upload", response_model=UploadResponse)
 async def upload_document(file: UploadFile = File(...)):
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files are supported"
+        )
+
+    upload_dir = Path("data/raw")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    saved_path = upload_dir / file.filename
+
+    with saved_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
     return UploadResponse(
         filename=file.filename,
         content_type=file.content_type,
-        message="File received successfully",
+        saved_path=str(saved_path),
+        message="File uploaded and saved successfully",
     )

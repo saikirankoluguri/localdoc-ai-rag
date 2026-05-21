@@ -18,4 +18,5 @@ class QuestionResponse(BaseModel):
 class UploadResponse(BaseModel):
     filename: str
     content_type: str
+    saved_path: str
     message: str
