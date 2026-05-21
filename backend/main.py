@@ -7,7 +7,7 @@ from fastapi import FastAPI, UploadFile, File,HTTPException
 from backend.config import settings
 from backend.schemas import HealthResponse, UploadResponse, DocumentInfo,ChunkingResponse, ChunkInfo
 from backend.document_loader import extract_text_from_pdf
-from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json
+from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json,chunks_file_exists
 
 
 logging.basicConfig(level=logging.INFO)
@@ -92,10 +92,27 @@ def list_documents():
         )
 
     return documents
+
 @app.post("/documents/{filename}/chunks", response_model=ChunkingResponse)
 def create_document_chunks(filename: str):
     source_path = Path(filename)
     extracted_file_path = Path("data/extracted") / f"{source_path.stem}.txt"
+
+    if chunks_file_exists(source_document=filename):
+        chunks_data = load_chunks_from_json(source_document=filename)
+        chunks = [ChunkInfo(**chunk) for chunk in chunks_data]
+
+        chunks_file_path = str(
+            Path("data/chunks") / f"{Path(filename).stem}_chunks.json"
+        )
+
+        return ChunkingResponse(
+            source_document=filename,
+            total_chunks=len(chunks),
+            chunks_file_path=chunks_file_path,
+            chunks=chunks,
+            message="Chunks already exist for this document. Loaded existing chunks.",
+        )
 
     if not extracted_file_path.exists():
         raise HTTPException(
@@ -109,18 +126,18 @@ def create_document_chunks(filename: str):
     )
 
     chunks_file_path = save_chunks_to_json(
-    chunks=chunks_data,
-    source_document=filename,
+        chunks=chunks_data,
+        source_document=filename,
     )
 
     chunks = [ChunkInfo(**chunk) for chunk in chunks_data]
 
     return ChunkingResponse(
-    source_document=filename,
-    total_chunks=len(chunks),
-    chunks_file_path=chunks_file_path,
-    chunks=chunks,
-    message="Document chunks generated and saved successfully",
+        source_document=filename,
+        total_chunks=len(chunks),
+        chunks_file_path=chunks_file_path,
+        chunks=chunks,
+        message="Document chunks generated and saved successfully",
     )
 
 @app.get("/documents/{filename}/chunks", response_model=ChunkingResponse)

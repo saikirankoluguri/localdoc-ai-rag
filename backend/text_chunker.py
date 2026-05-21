@@ -80,3 +80,10 @@ def load_chunks_from_json(source_document: str) -> list[dict]:
         )
 
     return json.loads(chunks_file_path.read_text(encoding="utf-8"))
+
+def chunks_file_exists(source_document: str) -> bool:
+    chunks_dir = Path("data/chunks")
+    safe_filename = Path(source_document).stem
+    chunks_file_path = chunks_dir / f"{safe_filename}_chunks.json"
+
+    return chunks_file_path.exists()
