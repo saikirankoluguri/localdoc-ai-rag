@@ -21,3 +21,19 @@ pip install -r requirements.txt
 python -c "import fastapi; import uvicorn; print('FastAPI setup working')"
 
 uvicorn backend.main:app
+
+## Document Ingestion API
+
+### Upload a PDF
+
+Endpoint:
+
+```http
+POST /upload
+
+### Step 2: Test final feature
+
+Run:
+
+```bash
+uvicorn backend.main:app --reload
