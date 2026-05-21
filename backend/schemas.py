@@ -39,5 +39,6 @@ class ChunkInfo(BaseModel):
 class ChunkingResponse(BaseModel):
     source_document: str
     total_chunks: int
+    chunks_file_path: str
     chunks: List[ChunkInfo]
     message: str

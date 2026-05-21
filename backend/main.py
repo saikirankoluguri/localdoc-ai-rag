@@ -7,7 +7,7 @@ from fastapi import FastAPI, UploadFile, File,HTTPException
 from backend.config import settings
 from backend.schemas import HealthResponse, UploadResponse, DocumentInfo,ChunkingResponse, ChunkInfo
 from backend.document_loader import extract_text_from_pdf
-from backend.text_chunker import chunk_text_file
+from backend.text_chunker import chunk_text_file, save_chunks_to_json
 
 
 logging.basicConfig(level=logging.INFO)
@@ -108,11 +108,17 @@ def create_document_chunks(filename: str):
         source_document=filename,
     )
 
+    chunks_file_path = save_chunks_to_json(
+    chunks=chunks_data,
+    source_document=filename,
+    )
+
     chunks = [ChunkInfo(**chunk) for chunk in chunks_data]
 
     return ChunkingResponse(
-        source_document=filename,
-        total_chunks=len(chunks),
-        chunks=chunks,
-        message="Document chunks generated successfully",
+    source_document=filename,
+    total_chunks=len(chunks),
+    chunks_file_path=chunks_file_path,
+    chunks=chunks,
+    message="Document chunks generated and saved successfully",
     )

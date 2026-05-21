@@ -1,6 +1,9 @@
 from pathlib import Path
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+import json
 import re
+
+
 
 
 def chunk_text_file(file_path: str, source_document: str) -> list[dict]:
@@ -51,3 +54,17 @@ def chunk_text_file(file_path: str, source_document: str) -> list[dict]:
         )
 
     return chunks
+
+def save_chunks_to_json(chunks: list[dict], source_document: str) -> str:
+    chunks_dir = Path("data/chunks")
+    chunks_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_filename = Path(source_document).stem
+    chunks_file_path = chunks_dir / f"{safe_filename}_chunks.json"
+
+    chunks_file_path.write_text(
+        json.dumps(chunks, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    return str(chunks_file_path)
