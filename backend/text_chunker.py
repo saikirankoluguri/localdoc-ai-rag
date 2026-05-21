@@ -68,3 +68,15 @@ def save_chunks_to_json(chunks: list[dict], source_document: str) -> str:
     )
 
     return str(chunks_file_path)
+
+def load_chunks_from_json(source_document: str) -> list[dict]:
+    chunks_dir = Path("data/chunks")
+    safe_filename = Path(source_document).stem
+    chunks_file_path = chunks_dir / f"{safe_filename}_chunks.json"
+
+    if not chunks_file_path.exists():
+        raise FileNotFoundError(
+            f"Chunks file not found for document: {source_document}"
+        )
+
+    return json.loads(chunks_file_path.read_text(encoding="utf-8"))
