@@ -60,11 +60,13 @@ async def upload_document(file: UploadFile = File(...)):
 
     extracted_data = extract_text_from_pdf(str(saved_path))
 
+   
     return UploadResponse(
-        filename=file.filename,
-        content_type=file.content_type,
-        saved_path=str(saved_path),
-        page_count=extracted_data["page_count"],
-        text_length=extracted_data["text_length"],
-        message="File uploaded, saved, and text extracted successfully",
+    filename=file.filename,
+    content_type=file.content_type,
+    saved_path=str(saved_path),
+    extracted_text_path=extracted_data["extracted_text_path"],
+    page_count=extracted_data["page_count"],
+    text_length=extracted_data["text_length"],
+    message="File uploaded, saved, and text extracted successfully",
     )
