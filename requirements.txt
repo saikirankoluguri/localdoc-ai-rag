@@ -3,3 +3,5 @@ uvicorn       #-> run FastAPI locally
 python-dotenv #-> load config from .env later
 pydantic      #-> request/response validation
 pydantic_settings  #-> manage application settings from environment variables
+python-multipart  #-> required by FastAPI for file uploads
+PyMuPDF           #-> PDF text extraction library, imported as fitz
