@@ -5,3 +5,4 @@ pydantic      #-> request/response validation
 pydantic_settings  #-> manage application settings from environment variables
 python-multipart  #-> required by FastAPI for file uploads
 PyMuPDF           #-> PDF text extraction library, imported as fitz
+langchain-text-splitters  #-> for splitting text into smaller chunks for processing

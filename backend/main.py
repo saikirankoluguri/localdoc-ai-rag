@@ -5,8 +5,17 @@ import shutil
 from fastapi import FastAPI, UploadFile, File,HTTPException
 
 from backend.config import settings
-from backend.schemas import HealthResponse, UploadResponse, DocumentInfo
+from backend.schemas import (
+    HealthResponse,
+    UploadResponse,
+    DocumentInfo,
+    ChunkingResponse,
+    ChunkInfo,
+    ChunkingSummaryResponse,
+    ChunkPreviewResponse,
+)
 from backend.document_loader import extract_text_from_pdf
+from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json,chunks_file_exists
 
 
 logging.basicConfig(level=logging.INFO)
@@ -91,3 +100,103 @@ def list_documents():
         )
 
     return documents
+
+@app.post("/documents/{filename}/chunks", response_model=ChunkingSummaryResponse)
+def create_document_chunks(filename: str):
+    source_path = Path(filename)
+    extracted_file_path = Path("data/extracted") / f"{source_path.stem}.txt"
+
+    if chunks_file_exists(source_document=filename):
+        chunks_data = load_chunks_from_json(source_document=filename)
+        chunks = [ChunkInfo(**chunk) for chunk in chunks_data]
+
+        chunks_file_path = str(
+            Path("data/chunks") / f"{Path(filename).stem}_chunks.json"
+        )
+
+        return ChunkingSummaryResponse(
+            source_document=filename,
+            total_chunks=len(chunks_data),
+            chunks_file_path=chunks_file_path,
+            message="Chunks already exist for this document. Loaded existing chunks.",
+        )
+
+    if not extracted_file_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"Extracted text not found for document: {filename}",
+        )
+
+    chunks_data = chunk_text_file(
+        file_path=str(extracted_file_path),
+        source_document=filename,
+    )
+
+    chunks_file_path = save_chunks_to_json(
+        chunks=chunks_data,
+        source_document=filename,
+    )
+
+    return ChunkingSummaryResponse(
+        source_document=filename,
+        total_chunks=len(chunks_data),
+        chunks_file_path=chunks_file_path,
+        message="Document chunks generated and saved successfully",
+    )
+
+@app.get("/documents/{filename}/chunks", response_model=ChunkingSummaryResponse)
+def get_document_chunks(filename: str):
+    try:
+        chunks_data = load_chunks_from_json(source_document=filename)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Chunks not found for document: {filename}. Generate chunks first.",
+        )
+
+    chunks_file_path = str(
+        Path("data/chunks") / f"{Path(filename).stem}_chunks.json"
+    )
+
+    return ChunkingSummaryResponse(
+    source_document=filename,
+    total_chunks=len(chunks_data),
+    chunks_file_path=chunks_file_path,
+    # Note: The 'chunks' field is not included in the response to avoid returning a large list of chunk data.
+    # If you need the actual chunks, you can add a 'chunks' field, but be cautious of the response size.
+    # chunks=chunks returns all chunks.
+    message="Document chunks summary loaded successfully",
+    )
+
+@app.get(
+    "/documents/{filename}/chunks/preview", response_model=ChunkPreviewResponse
+)
+def preview_document_chunks(
+    filename: str,
+    limit: int = 5
+):
+    try:
+        chunks_data = load_chunks_from_json(
+            source_document=filename
+        )
+
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Chunks not found for document: {filename}"
+        )
+
+    preview_chunks = chunks_data[:limit]
+
+    chunks = [
+        ChunkInfo(**chunk)
+        for chunk in preview_chunks
+    ]
+
+    return ChunkPreviewResponse(
+        source_document=filename,
+        total_chunks=len(chunks_data),
+        preview_count=len(chunks),
+        chunks=chunks,
+        message="Chunk preview loaded successfully"
+    )
