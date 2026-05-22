@@ -55,3 +55,48 @@ class ChunkPreviewResponse(BaseModel):
     preview_count: int
     chunks: List[ChunkInfo]
     message: str
+
+class IndexResponse(BaseModel):
+    # Original document name that was indexed
+    source_document: str
+
+    # Number of text chunks stored in the vector database
+    total_chunks_indexed: int
+
+    # ChromaDB collection where chunks are stored
+    collection_name: str
+
+    # Human-readable status message
+    message: str
+
+
+class SearchRequest(BaseModel):
+    # User question or search query
+    query: str
+
+    # Number of most relevant chunks to return
+    top_k: int = 3
+
+#This represents one matching chunk.
+class SearchResult(BaseModel):
+    # Position of the chunk in the original chunk list
+    chunk_index: int
+    # Actual chunk text retrieved from vector database
+    text: str
+    # Original document where this chunk came from
+    source_document: str
+    # Length of this chunk in characters
+    character_count: int
+    # Similarity/relevance score from vector search
+    relevance_score: float | None = None
+
+#This represents the full API response for one search request. It contains multiple SearchResult objects.
+class SearchResponse(BaseModel):
+    # Original user query
+    query: str
+    # Number of search results returned
+    total_results: int
+    # List of matching chunks
+    results: List[SearchResult]
+    # Human-readable status message
+    message: str
