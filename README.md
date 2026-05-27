@@ -39,3 +39,34 @@ Run:
 uvicorn backend.main:app --reload
 
 python -c "from langchain_text_splitters import RecursiveCharacterTextSplitter; print('Text splitter working')"
+
+ollama serve
+
+ollama pull nomic-embed-text
+ollama pull llama3.1
+
+ollama list
+
+1.0   → almost identical meaning
+0.8   → very related
+0.5   → somewhat related
+0.2   → weak relation
+0     → unrelated
+-1    → opposite meaning
+
+Real RAG FLOW:
+User Question
+      ↓
+Embedding model
+      ↓
+Question vector
+
+Question vector
+      ↓
+Compare against all chunk vectors
+      ↓
+Cosine similarity calculation
+      ↓
+Sort by highest score
+      ↓
+Return top K chunks

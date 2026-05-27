@@ -88,3 +88,27 @@ def index_document_chunks(
     )
 
     return len(chunks)
+
+def document_already_indexed(
+    source_document: str
+) -> bool:
+    """
+    Check whether document already exists in vector DB
+    """
+
+    results = vector_store.get()
+
+    metadata_list = results.get(
+        "metadatas",
+        []
+    )
+
+    for metadata in metadata_list:
+
+        if (
+            metadata["source_document"]
+            == source_document
+        ):
+            return True
+
+    return False

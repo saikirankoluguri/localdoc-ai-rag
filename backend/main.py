@@ -13,9 +13,14 @@ from backend.schemas import (
     ChunkInfo,
     ChunkingSummaryResponse,
     ChunkPreviewResponse,
+    IndexResponse,
 )
 from backend.document_loader import extract_text_from_pdf
 from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json,chunks_file_exists
+from backend.vector_store import (
+    index_document_chunks,
+    document_already_indexed
+)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -199,4 +204,45 @@ def preview_document_chunks(
         preview_count=len(chunks),
         chunks=chunks,
         message="Chunk preview loaded successfully"
+    )
+
+@app.post(
+    "/documents/{filename}/index",
+    response_model=IndexResponse
+)
+def index_document(
+    filename: str
+):
+
+    if document_already_indexed(
+        source_document=filename
+    ):
+
+        return IndexResponse(
+            source_document=filename,
+            total_chunks_indexed=0,
+            collection_name="documents",
+            message="Document already indexed"
+        )
+
+    try:
+
+        total_chunks_indexed = (
+            index_document_chunks(
+                source_document=filename
+            )
+        )
+
+    except FileNotFoundError:
+
+        raise HTTPException(
+            status_code=404,
+            detail=f"Chunks not found for document: {filename}"
+        )
+
+    return IndexResponse(
+        source_document=filename,
+        total_chunks_indexed=total_chunks_indexed,
+        collection_name="documents",
+        message="Document chunks indexed successfully"
     )
