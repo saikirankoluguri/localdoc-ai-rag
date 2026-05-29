@@ -14,12 +14,16 @@ from backend.schemas import (
     ChunkingSummaryResponse,
     ChunkPreviewResponse,
     IndexResponse,
+    SearchRequest,
+    SearchResponse,
+    SearchResult,
 )
 from backend.document_loader import extract_text_from_pdf
 from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json,chunks_file_exists
 from backend.vector_store import (
     index_document_chunks,
-    document_already_indexed
+    document_already_indexed,
+    search_similar_chunks
 )
 
 
@@ -245,4 +249,32 @@ def index_document(
         total_chunks_indexed=total_chunks_indexed,
         collection_name="documents",
         message="Document chunks indexed successfully"
+    )
+
+@app.post(
+    "/search",
+    response_model=SearchResponse
+)
+def search_documents(
+    request: SearchRequest
+):
+    """
+    Semantic search across indexed document chunks.
+    """
+
+    results = search_similar_chunks(
+        query=request.query,
+        top_k=request.top_k
+    )
+
+    search_results = [
+        SearchResult(**result)
+        for result in results
+    ]
+
+    return SearchResponse(
+        query=request.query,
+        total_results=len(search_results),
+        results=search_results,
+        message="Search completed successfully"
     )
