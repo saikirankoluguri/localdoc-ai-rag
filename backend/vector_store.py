@@ -112,3 +112,41 @@ def document_already_indexed(
             return True
 
     return False
+
+def search_similar_chunks(
+    query: str,
+    top_k: int = 3
+) -> list[dict]:
+    """
+    Search vector DB for similar chunks
+    """
+
+    results = vector_store.similarity_search_with_score(
+        query=query,
+        k=top_k
+    )
+
+    formatted_results = []
+
+    for document, score in results:
+
+        formatted_results.append(
+            {
+                "chunk_index":
+                document.metadata["chunk_index"],
+
+                "text":
+                document.page_content,
+
+                "source_document":
+                document.metadata["source_document"],
+
+                "character_count":
+                document.metadata["character_count"],
+
+                "relevance_score":
+                round(score,4)
+            }
+        )
+
+    return formatted_results
