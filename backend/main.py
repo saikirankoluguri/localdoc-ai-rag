@@ -3,7 +3,6 @@ from pathlib import Path
 import shutil
 
 from fastapi import FastAPI, UploadFile, File,HTTPException
-
 from backend.config import settings
 from backend.schemas import (
     HealthResponse,
@@ -17,6 +16,9 @@ from backend.schemas import (
     SearchRequest,
     SearchResponse,
     SearchResult,
+    AskRequest, 
+    AskResponse, 
+    SourceChunk
 )
 from backend.document_loader import extract_text_from_pdf
 from backend.text_chunker import chunk_text_file, save_chunks_to_json, load_chunks_from_json,chunks_file_exists
@@ -277,4 +279,24 @@ def search_documents(
         total_results=len(search_results),
         results=search_results,
         message="Search completed successfully"
+    )
+
+@app.post("/ask", response_model=AskResponse)
+async def ask_question(request: AskRequest):
+    """
+    RAG Generation Endpoint: Receives a question, retrieves context from ChromaDB,
+    constructs a strict prompt boundary, and returns a grounded response from llama3.1.
+    """
+    # Dummy structural response for Commit 1 testing verification
+    return AskResponse(
+        question=request.question,
+        answer="Inference engine stub active. Ready for generation logic integration.",
+        sources=[
+            SourceChunk(
+                chunk_index=0,
+                text="Mock chunk text placeholder.",
+                source_document="history.pdf",
+                relevance_score=0.95
+            )
+        ]
     )

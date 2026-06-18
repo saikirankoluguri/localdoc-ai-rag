@@ -100,3 +100,21 @@ class SearchResponse(BaseModel):
     results: List[SearchResult]
     # Human-readable status message
     message: str
+
+# Insert this code directly at the bottom of backend/schemas.py
+
+class SourceChunk(BaseModel):
+    chunk_index: int
+    text: str
+    source_document: str
+    relevance_score: float
+
+class AskRequest(BaseModel):
+    question: str
+    top_k: int = 3
+
+class AskResponse(BaseModel):
+    question: str
+    answer: str
+    sources: list[SourceChunk]
+
