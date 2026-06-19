@@ -3,6 +3,7 @@ from pathlib import Path
 import shutil
 
 from fastapi import FastAPI, UploadFile, File,HTTPException
+from fastapi.responses import StreamingResponse
 from backend.config import settings
 from backend.schemas import (
     HealthResponse,
@@ -27,10 +28,12 @@ from backend.vector_store import (
     document_already_indexed,
     search_similar_chunks
 )
+from backend.generation_service import GenerationService
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+generation_service = GenerationService()
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -281,22 +284,18 @@ def search_documents(
         message="Search completed successfully"
     )
 
-@app.post("/ask", response_model=AskResponse)
-async def ask_question(request: AskRequest):
+@app.post("/ask/stream")
+async def ask_question_stream(request: AskRequest):
     """
-    RAG Generation Endpoint: Receives a question, retrieves context from ChromaDB,
-    constructs a strict prompt boundary, and returns a grounded response from llama3.1.
+    Production RAG Endpoint: Streams citation metadata followed by real-time LLM token generation.
     """
-    # Dummy structural response for Commit 1 testing verification
-    return AskResponse(
-        question=request.question,
-        answer="Inference engine stub active. Ready for generation logic integration.",
-        sources=[
-            SourceChunk(
-                chunk_index=0,
-                text="Mock chunk text placeholder.",
-                source_document="history.pdf",
-                relevance_score=0.95
-            )
-        ]
-    )
+    try:
+        return StreamingResponse(
+            generation_service.generate_streaming_answer(
+                question=request.question,
+                top_k=request.top_k
+            ),
+            media_type="text/event-stream"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Streaming Engine Failure: {str(e)}")
